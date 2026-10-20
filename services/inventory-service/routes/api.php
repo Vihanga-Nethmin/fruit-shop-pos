@@ -6,7 +6,3 @@ use Illuminate\Support\Facades\Route;
 // Agree the endpoints with the team before adding them (see README.md and /docs/api).
 
 Route::get('/ping', fn () => response()->json(['data' => ['service' => 'inventory-service', 'status' => 'ok']]));
-
-Route::middleware('tenant')->get('/tenant-check', function () {
-    return response()->json(['tenant' => app('tenant_id')]);
-});
