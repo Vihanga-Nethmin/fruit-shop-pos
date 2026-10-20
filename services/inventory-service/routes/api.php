@@ -1,5 +1,13 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
+
+Route::middleware('tenant')->group(function () {
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::post('/categories', [CategoryController::class, 'store']);
+    Route::patch('/categories/{id}', [CategoryController::class, 'update']);
+});
+
 use Illuminate\Support\Facades\Route;
 
 // Catalogue & Inventory Service - public API (prefix /api/v1, see bootstrap/app.php)
