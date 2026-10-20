@@ -16,9 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::prefix('internal/v1')->group(base_path('routes/internal.php'));
         },
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        //
-    })
+   ->withMiddleware(function (Middleware $middleware): void {
+    $middleware->alias([
+        'tenant' => \App\Http\Middleware\ResolveTenant::class,
+    ]);
+})
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
