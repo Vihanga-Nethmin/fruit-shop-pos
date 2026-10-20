@@ -8,9 +8,17 @@ Route::middleware('tenant')->group(function () {
     Route::patch('/categories/{id}', [CategoryController::class, 'update']);
 });
 
+use App\Http\Controllers\ProductController;
+
+Route::middleware('tenant')->group(function () {
+    Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products/{id}', [ProductController::class, 'show']);
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::patch('/products/{id}', [ProductController::class, 'update']);
+});
+
 use Illuminate\Support\Facades\Route;
 
-// Catalogue & Inventory Service - public API (prefix /api/v1, see bootstrap/app.php)
-// Agree the endpoints with the team before adding them (see README.md and /docs/api).
+
 
 Route::get('/ping', fn () => response()->json(['data' => ['service' => 'inventory-service', 'status' => 'ok']]));
