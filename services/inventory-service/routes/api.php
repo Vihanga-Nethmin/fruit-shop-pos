@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OpeningStockController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\TransferController;
+use App\Http\Controllers\PurchaseOrderController;
 
 
 
@@ -38,4 +39,9 @@ Route::middleware('tenant')->group(function () {
 
         Route::post('/inventory/transfers', [TransferController::class, 'store']);
 
+            Route::get('/purchase-orders', [PurchaseOrderController::class, 'index']);
+    Route::get('/purchase-orders/{id}', [PurchaseOrderController::class, 'show']);
+    Route::post('/purchase-orders', [PurchaseOrderController::class, 'store']);
+    Route::post('/purchase-orders/{id}/approve', [PurchaseOrderController::class, 'approve']);
+    Route::post('/purchase-orders/{id}/cancel', [PurchaseOrderController::class, 'cancel']);
 });
