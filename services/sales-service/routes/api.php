@@ -1,8 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\SaleController;
 
-// Sales Service - public API (prefix /api/v1, see bootstrap/app.php)
-// Agree the endpoints with the team before adding them (see README.md and /docs/api).
-
-Route::get('/ping', fn () => response()->json(['data' => ['service' => 'sales-service', 'status' => 'ok']]));
+Route::get('/ping', fn () => response()->json(['status' => 'ok']));
+Route::post('/sales', [SaleController::class, 'store']);
