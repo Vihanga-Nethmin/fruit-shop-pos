@@ -97,4 +97,22 @@ class SaleController extends Controller
             'data' => $sales
         ], 200);
     }
+        // එක බිලක විස්තර විතරක් බලන්න (Get Single Sale)
+    public function show($id)
+    {
+        // අදාළ ID එකට අයිති බිල, ඒකේ භාණ්ඩ සහ ගෙවීම් එක්කම හොයන්න
+        $sale = Sale::with(['lines', 'payments'])->find($id);
+
+        // එහෙම බිලක් නැත්නම් 404 Error එකක් එවන්න
+        if (!$sale) {
+            return response()->json([
+                'message' => 'Sale not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Sale retrieved successfully',
+            'data' => $sale
+        ], 200);
+    }
 }
