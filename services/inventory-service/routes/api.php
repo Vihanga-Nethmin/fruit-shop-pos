@@ -7,6 +7,7 @@ use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OpeningStockController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\TransferController;
 
 
 
@@ -34,4 +35,7 @@ Route::middleware('tenant')->group(function () {
         Route::post('/inventory/opening-balances', [OpeningStockController::class, 'store']);
     Route::get('/inventory/positions', [StockController::class, 'positions']);
     Route::get('/inventory/movements', [StockController::class, 'movements']);
+
+        Route::post('/inventory/transfers', [TransferController::class, 'store']);
+
 });
