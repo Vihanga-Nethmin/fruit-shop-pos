@@ -9,6 +9,7 @@ use App\Http\Controllers\OpeningStockController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\TransferController;
 use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\GoodsReceiptController;
 
 
 
@@ -44,4 +45,9 @@ Route::middleware('tenant')->group(function () {
     Route::post('/purchase-orders', [PurchaseOrderController::class, 'store']);
     Route::post('/purchase-orders/{id}/approve', [PurchaseOrderController::class, 'approve']);
     Route::post('/purchase-orders/{id}/cancel', [PurchaseOrderController::class, 'cancel']);
+
+        Route::get('/goods-receipts', [GoodsReceiptController::class, 'index']);
+    Route::get('/goods-receipts/{id}', [GoodsReceiptController::class, 'show']);
+    Route::post('/goods-receipts', [GoodsReceiptController::class, 'store']);
+    Route::post('/goods-receipts/{id}/post', [GoodsReceiptController::class, 'post']);
 });
