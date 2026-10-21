@@ -36,6 +36,7 @@ Route::middleware('tenant')->group(function () {
 
         Route::post('/inventory/opening-balances', [OpeningStockController::class, 'store']);
     Route::get('/inventory/positions', [StockController::class, 'positions']);
+        Route::get('/inventory/availability', [StockController::class, 'availability']);
     Route::get('/inventory/movements', [StockController::class, 'movements']);
 
         Route::post('/inventory/transfers', [TransferController::class, 'store']);
