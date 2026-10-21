@@ -86,4 +86,15 @@ class SaleController extends Controller
             return response()->json(['error' => 'Failed to create sale', 'details' => $e->getMessage()], 500);
         }
     }
+        // හැම බිලක්ම බලන්න (Get All Sales)
+    public function index()
+    {
+        // හැම බිලක්ම, ඒවාට අදාළ භාණ්ඩ (lines) සහ ගෙවීම් (payments) එක්කම ගන්න
+        $sales = Sale::with(['lines', 'payments'])->latest()->get();
+
+        return response()->json([
+            'message' => 'Sales retrieved successfully',
+            'data' => $sales
+        ], 200);
+    }
 }
