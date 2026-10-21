@@ -5,6 +5,8 @@ use App\Http\Controllers\LocationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OpeningStockController;
+use App\Http\Controllers\StockController;
 
 
 
@@ -28,4 +30,8 @@ Route::middleware('tenant')->group(function () {
     Route::get('/locations', [LocationController::class, 'index']);
     Route::post('/locations', [LocationController::class, 'store']);
     Route::patch('/locations/{id}', [LocationController::class, 'update']);
+
+        Route::post('/inventory/opening-balances', [OpeningStockController::class, 'store']);
+    Route::get('/inventory/positions', [StockController::class, 'positions']);
+    Route::get('/inventory/movements', [StockController::class, 'movements']);
 });
