@@ -14,6 +14,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ReservationActionController;
 use App\Http\Controllers\BatchController;
 use App\Http\Controllers\SaleReturnReceiptController;
+use App\Http\Controllers\SaleReturnReleaseController;
 
 
 
@@ -66,5 +67,6 @@ Route::middleware('tenant')->group(function () {
     Route::post('/batches/{id}/assessments', [BatchController::class, 'assess']);
         Route::post('/inventory/sale-return-receipts', [SaleReturnReceiptController::class, 'store']);
     Route::get('/inventory/sale-return-receipts/by-request/{requestId}', [SaleReturnReceiptController::class, 'showByRequest']);
+        Route::post('/inventory/sale-return-receipt-lines/{lineId}/release', [SaleReturnReleaseController::class, 'release']);
 
 });
