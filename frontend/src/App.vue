@@ -1,85 +1,75 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+  <div>
+    <router-view />
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+<style>
+/* මේක තමයි අපේ පද්ධතියේ ප්‍රධාන තේමාව */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6f9;
+  color: #333;
 }
 
-.logo {
+/* ලස්සන කොළ පාට බොත්තම් */
+.btn-emerald {
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+.btn-emerald:hover {
+  background-color: #1b5e20;
+  color: white;
+}
+
+/* Navigation Bar එකේ ලින්ක්ස් */
+.sidebar-link {
+  color: #d1d5db;
+  text-decoration: none;
+  padding: 12px 15px;
   display: block;
-  margin: 0 auto 2rem;
+  border-radius: 6px;
+  margin-bottom: 5px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.sidebar-link:hover {
+  background-color: #374151;
+  color: white;
+}
+.sidebar-link.active {
+  background-color: #2e7d32;
+  color: white;
+  font-weight: bold;
 }
 
-nav {
+/* Table එකේ පෙනුම */
+.custom-table {
   width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.custom-table th {
+  background-color: #2e7d32;
+  color: white;
+  padding: 12px;
+  text-align: left;
 }
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
+.custom-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
 }
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.custom-table tr:hover {
+  background-color: #f3f4f6;
 }
 </style>
