@@ -15,6 +15,7 @@ use App\Http\Controllers\ReservationActionController;
 use App\Http\Controllers\BatchController;
 use App\Http\Controllers\SaleReturnReceiptController;
 use App\Http\Controllers\SaleReturnReleaseController;
+use App\Http\Controllers\WastageController;
 
 
 
@@ -68,5 +69,12 @@ Route::middleware('tenant')->group(function () {
         Route::post('/inventory/sale-return-receipts', [SaleReturnReceiptController::class, 'store']);
     Route::get('/inventory/sale-return-receipts/by-request/{requestId}', [SaleReturnReceiptController::class, 'showByRequest']);
         Route::post('/inventory/sale-return-receipt-lines/{lineId}/release', [SaleReturnReleaseController::class, 'release']);
+
+            Route::get('/wastage-records', [WastageController::class, 'index']);
+    Route::get('/wastage-records/{id}', [WastageController::class, 'show']);
+    Route::post('/wastage-records', [WastageController::class, 'store']);
+    Route::post('/wastage-records/{id}/approve', [WastageController::class, 'approve']);
+    Route::post('/wastage-records/{id}/reject', [WastageController::class, 'reject']);
+    Route::post('/wastage-records/{id}/cancel', [WastageController::class, 'cancel']);
 
 });
