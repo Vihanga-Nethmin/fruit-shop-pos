@@ -12,6 +12,7 @@ use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\GoodsReceiptController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ReservationActionController;
+use App\Http\Controllers\BatchController;
 
 
 
@@ -58,4 +59,8 @@ Route::middleware('tenant')->group(function () {
     Route::get('/inventory/reservations/by-request/{requestId}', [ReservationController::class, 'showByRequest']);
         Route::post('/inventory/reservations/{id}/commit', [ReservationActionController::class, 'commit']);
     Route::post('/inventory/reservations/{id}/release', [ReservationActionController::class, 'release']);
+
+        Route::get('/batches', [BatchController::class, 'index']);
+    Route::get('/batches/{id}', [BatchController::class, 'show']);
+    Route::post('/batches/{id}/assessments', [BatchController::class, 'assess']);
 });
