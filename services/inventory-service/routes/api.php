@@ -11,6 +11,7 @@ use App\Http\Controllers\TransferController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\GoodsReceiptController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ReservationActionController;
 
 
 
@@ -55,4 +56,6 @@ Route::middleware('tenant')->group(function () {
 
         Route::post('/inventory/reservations', [ReservationController::class, 'store']);
     Route::get('/inventory/reservations/by-request/{requestId}', [ReservationController::class, 'showByRequest']);
+        Route::post('/inventory/reservations/{id}/commit', [ReservationActionController::class, 'commit']);
+    Route::post('/inventory/reservations/{id}/release', [ReservationActionController::class, 'release']);
 });
