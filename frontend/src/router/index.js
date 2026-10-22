@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import CreateSale from '../components/CreateSale.vue';
+import SalesList from '../components/SalesList.vue';
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -22,7 +23,13 @@ const router = createRouter({
       path: '/create-sale',
       name: 'CreateSale',
       component: CreateSale
-    }
+    },
+    {
+      path: '/sales-list',
+      name: 'SalesList',
+     component: SalesList
+}
+    
     
   ],
 })
