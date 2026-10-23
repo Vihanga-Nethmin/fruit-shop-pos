@@ -64,9 +64,27 @@
       </div>
 
       <div class="mt-auto border-top pt-3">
+        
+        <!-- Discount Input -->
+        <div class="mb-3">
+          <label class="form-label fw-bold text-muted">Discount (LKR)</label>
+          <input v-model="discountAmount" type="number" min="0" class="form-control" placeholder="0.00" />
+        </div>
+
+        <!-- Payment Method Selection -->
+        <div class="mb-3">
+          <label class="form-label fw-bold text-muted">Payment Method</label>
+          <select v-model="paymentMethod" class="form-select">
+            <option value="cash">Cash</option>
+            <option value="card">Card</option>
+          </select>
+        </div>
+        <hr />
+
+        <!-- Total Amount (Discount එක අඩු කරලා) -->
         <div class="d-flex justify-content-between fs-4 fw-bold mb-3">
           <span>Total:</span>
-          <span>LKR {{ totalAmount }}</span>
+          <span>LKR {{ finalAmount }}</span>
         </div>
 
         <button @click="createSale" class="btn btn-success w-100 py-2 fs-5">Complete Sale</button>
@@ -98,6 +116,10 @@ const cart = ref([]);
 const message = ref('');
 const error = ref('');
 
+// අලුත් - Discount එක සහ Payment Method එක
+const discountAmount = ref(0);
+const paymentMethod = ref('cash');
+
 // බිලට භාණ්ඩ එකතු කරන function එක
 const addToCart = (name, price) => {
   cart.value.push({
@@ -114,10 +136,16 @@ const totalAmount = computed(() => {
   return cart.value.reduce((sum, item) => sum + item.total, 0);
 });
 
+// අවසාන මුදල (Discount එක අඩු කරලා)
+const finalAmount = computed(() => {
+  const final = totalAmount.value - (parseFloat(discountAmount.value) || 0);
+  return final.toFixed(2); // දශම දෙකකට සීමා කරන්න
+});
+
 // Search Query එකට අනුව භාණ්ඩ ෆිල්ටර් කරන Function එක
 const filteredProducts = computed(() => {
   if (!searchQuery.value) {
-    return products.value; // Search Bar එක හිස් නම් ඔක්කොම පෙන්නන්න
+    return products.value;
   }
   return products.value.filter(p => 
     p.name.toLowerCase().includes(searchQuery.value.toLowerCase())
@@ -142,8 +170,9 @@ const createSale = async () => {
       quantity: item.quantity,
       unit_price: item.price
     })),
-    payment_method: 'cash',
-    payment_amount: totalAmount.value,
+    payment_method: paymentMethod.value,       // අලුත් - තෝරපු ගෙවීම් ක්‍රමය
+    payment_amount: parseFloat(finalAmount.value), // අලුත් - අවසාන මුදල
+    discount_amount: parseFloat(discountAmount.value) || 0, // අලුත් - Discount එක
     request_id: generateRequestId()
   };
 
@@ -155,6 +184,8 @@ const createSale = async () => {
     router.push(`/receipt/${response.data.sale.id}`);
     
     cart.value = []; // Cart එක හිස් කරන්න
+    discountAmount.value = 0; // Discount එකත් reset කරන්න
+    paymentMethod.value = 'cash'; // Payment එකත් reset කරන්න
   } catch (err) {
     console.error(err);
     error.value = err.response?.data?.message || 'Failed to create sale.';

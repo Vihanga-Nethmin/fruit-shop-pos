@@ -25,11 +25,12 @@ class SaleController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
             'payment_method' => 'required|string|in:cash,card',
             'payment_amount' => 'required|numeric|min:0',
-            'request_id' => 'required|string|unique:sales,request_id' // දෙපාරක් ඔබන එක නවත්තන්න
+            'discount_amount' => 'nullable|numeric|min:0', // අලුත් - Discount එක
+            'request_id' => 'required|string|unique:sales,request_id'
         ]);
 
         try {
-            // Database Transaction එකක් පටන් ගන්නවා (මොකක් හරි අවුලක් ආවොත් ඔක්කොම cancel වෙන්න)
+            // Database Transaction එකක් පටන් ගන්නවා
             DB::beginTransaction();
 
             // 2. මුළු මුදල ගණනය කරන්න
@@ -38,15 +39,18 @@ class SaleController extends Controller
                 $totalAmount += ($item['quantity'] * $item['unit_price']);
             }
 
+            // Discount එක අඩු කරලා අවසාන මුදල ගණනය කරන්න
+            $finalAmount = $totalAmount - ($request->discount_amount ?? 0);
+
             // 3. අලුත් බිල (Sale) එක හදන්න
             $sale = Sale::create([
                 'tenant_id' => $request->tenant_id,
                 'user_id' => $request->user_id,
-                'sale_number' => 'SALE-' . strtoupper(Str::random(8)), // අහඹු බිල්පත් අංකයක්
-                'status' => 'completed', // දැනට අපි හිතමු ගෙවීම් ඉවරයි කියලා
-                'total_amount' => $totalAmount,
+                'sale_number' => 'SALE-' . strtoupper(Str::random(8)),
+                'status' => 'completed',
+                'total_amount' => $finalAmount, // Discount එක අඩු කරපු මුදල
                 'tax_amount' => 0,
-                'discount_amount' => 0,
+                'discount_amount' => $request->discount_amount ?? 0,
                 'request_id' => $request->request_id,
             ]);
 
@@ -71,7 +75,6 @@ class SaleController extends Controller
                 'status' => 'confirmed',
             ]);
 
-            // ඔක්කොම හරි ගියා නම් Database එකට save කරන්න
             DB::commit();
 
             // සාර්ථක පණිවිඩයක් යවන්න
@@ -81,15 +84,14 @@ class SaleController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            // මොකක් හරි අවුලක් ආවොත් ඔක්කොම ආපහු හරවන්න
             DB::rollBack();
             return response()->json(['error' => 'Failed to create sale', 'details' => $e->getMessage()], 500);
         }
     }
-        // හැම බිලක්ම බලන්න (Get All Sales)
+
+    // හැම බිලක්ම බලන්න (Get All Sales)
     public function index()
     {
-        // හැම බිලක්ම, ඒවාට අදාළ භාණ්ඩ (lines) සහ ගෙවීම් (payments) එක්කම ගන්න
         $sales = Sale::with(['lines', 'payments'])->latest()->get();
 
         return response()->json([
@@ -97,13 +99,12 @@ class SaleController extends Controller
             'data' => $sales
         ], 200);
     }
-        // එක බිලක විස්තර විතරක් බලන්න (Get Single Sale)
+
+    // එක බිලක විස්තර විතරක් බලන්න (Get Single Sale)
     public function show($id)
     {
-        // අදාළ ID එකට අයිති බිල, ඒකේ භාණ්ඩ සහ ගෙවීම් එක්කම හොයන්න
         $sale = Sale::with(['lines', 'payments'])->find($id);
 
-        // එහෙම බිලක් නැත්නම් 404 Error එකක් එවන්න
         if (!$sale) {
             return response()->json([
                 'message' => 'Sale not found'
