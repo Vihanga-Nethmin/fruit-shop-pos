@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import CreateSale from '../components/CreateSale.vue';
 import SalesList from '../components/SalesList.vue';
 import ViewSale from '../components/ViewSale.vue';
+import ReturnSale from '../components/ReturnSale.vue';
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -34,7 +35,12 @@ const router = createRouter({
      path: '/sales/:id',
      name: 'ViewSale',
      component: ViewSale
-    }
+    },
+    {
+  path: '/return-sale',
+  name: 'ReturnSale',
+  component: ReturnSale
+}
 
     
     
