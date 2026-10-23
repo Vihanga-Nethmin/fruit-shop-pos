@@ -29,8 +29,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="sale in sales" :key="sale.id">
-              <td>#{{ sale.id }}</td>
+<tr v-for="sale in sales" :key="sale.id" @click="viewSale(sale.id)" style="cursor: pointer;" class="hover-row">              <td>#{{ sale.id }}</td>
               <td>{{ sale.sale_number }}</td>
               <td class="fw-bold">LKR {{ sale.total_amount }}</td>
               <td><span class="badge bg-success">{{ sale.status }}</span></td>
@@ -49,9 +48,13 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router'; // මේක උඩින්ම තියෙන්න ඕනේ
+
+const router = useRouter(); // මේක script එක ඇතුලේ උඩින්ම තියන්න
 
 const sales = ref([]);
 
+// දත්ත ලබා ගන්නා function එක
 const fetchSales = async () => {
   try {
     const response = await axios.get('http://127.0.0.1:8000/api/sales');
@@ -59,6 +62,11 @@ const fetchSales = async () => {
   } catch (err) {
     console.error(err);
   }
+};
+
+// බිලක් උඩ Click කරද්දී වෙන තිරයට යන function එක
+const viewSale = (id) => {
+  router.push(`/sales/${id}`);
 };
 
 onMounted(() => {
