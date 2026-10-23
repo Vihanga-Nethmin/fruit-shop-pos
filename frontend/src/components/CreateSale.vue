@@ -63,6 +63,8 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router';
+const router = useRouter();
 import { ref, computed } from 'vue';
 import axios from 'axios';
 
@@ -94,6 +96,7 @@ const createSale = async () => {
   
   message.value = '';
   error.value = '';
+  
 
   const salePayload = {
     tenant_id: '123e4567-e89b-12d3-a456-426614174000',
@@ -111,6 +114,7 @@ const createSale = async () => {
   try {
     const response = await axios.post('http://127.0.0.1:8000/api/sales', salePayload);
     message.value = response.data.message + ' (Sale ID: ' + response.data.sale.id + ')';
+    router.push(`/receipt/${response.data.sale.id}`);
     cart.value = [];
   } catch (err) {
     console.error(err);

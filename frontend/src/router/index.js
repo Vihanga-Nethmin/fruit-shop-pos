@@ -4,6 +4,7 @@ import CreateSale from '../components/CreateSale.vue';
 import SalesList from '../components/SalesList.vue';
 import ViewSale from '../components/ViewSale.vue';
 import ReturnSale from '../components/ReturnSale.vue';
+import PrintReceipt from '../components/PrintReceipt.vue';
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -40,6 +41,11 @@ const router = createRouter({
   path: '/return-sale',
   name: 'ReturnSale',
   component: ReturnSale
+},
+{
+  path: '/receipt/:id',
+  name: 'PrintReceipt',
+  component: PrintReceipt
 }
 
     
