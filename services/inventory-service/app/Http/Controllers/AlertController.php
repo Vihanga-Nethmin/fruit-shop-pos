@@ -45,7 +45,7 @@ class AlertController extends Controller
             'type'        => ['nullable', Rule::in(self::TYPES)],
         ]);
 
-        $nearDays   = (int) ($data['near_days'] ?? 2);     // default two calendar days
+        $nearDays   = (int) ($data['near_days'] ?? 2);     
         $reviewDays = (int) ($data['review_days'] ?? 2);
         $tenant     = app('tenant_id');
         $today      = Availability::today();
@@ -53,7 +53,6 @@ class AlertController extends Controller
 
         $alerts = [];
 
-        // 1 + 2: product walata sellable total (LOW_STOCK, ZERO_SELLABLE)
         $cond = Availability::sellableSql('b');
         $products = DB::select(
             "SELECT p.id, p.sku, p.name, p.base_unit, p.low_stock_threshold,
@@ -118,7 +117,6 @@ class AlertController extends Controller
             }
         }
 
-        // 5: quarantined / spoiled stock disposal wait karanawa
         $blocked = DB::select(
             "SELECT b.id AS batch_id, b.quality_state, p.id AS product_id, p.sku, p.name, p.base_unit,
                     SUM(sp.physical_qty) AS qty
@@ -146,7 +144,6 @@ class AlertController extends Controller
             }
         }
 
-        // 6: quality review late (assessment nathnam received date eken)
         $cutoff  = now()->subDays($reviewDays)->toDateTimeString();
         $overdue = DB::select(
             "SELECT b.id AS batch_id, b.source, p.id AS product_id, p.sku, p.name, p.base_unit,
@@ -171,7 +168,6 @@ class AlertController extends Controller
                 ]);
         }
 
-        // 7: expire wenna thibba, thawama ACTIVE reservations
         $stuck = DB::select(
             "SELECT id, request_id, expires_at FROM reservations
               WHERE tenant_id = ? AND status = 'ACTIVE' AND expires_at < ?",

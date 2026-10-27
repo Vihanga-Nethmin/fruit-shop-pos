@@ -18,6 +18,7 @@ use App\Http\Controllers\SaleReturnReleaseController;
 use App\Http\Controllers\WastageController;
 use App\Http\Controllers\StockCountController;
 use App\Http\Controllers\AlertController;
+use App\Http\Controllers\ReportController;
 
 
 
@@ -86,6 +87,10 @@ Route::middleware('tenant')->group(function () {
     Route::post('/stock-counts/{id}/submit', [StockCountController::class, 'submit']);
     Route::post('/stock-counts/{id}/approve', [StockCountController::class, 'approve']);
     Route::post('/stock-counts/{id}/cancel', [StockCountController::class, 'cancel']);
+    
         Route::get('/inventory/alerts', [AlertController::class, 'index']);
+
+            Route::get('/reports/stock', [ReportController::class, 'stock']);
+    Route::get('/reports/ageing', [ReportController::class, 'ageing']);
 
 });
