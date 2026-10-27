@@ -1,37 +1,53 @@
 <template>
-  <div class="d-flex w-100 vh-100"> <!-- මේකෙන් තිරය පුරාම පැතිරෙනවා -->
+  <div class="d-flex w-100 vh-100">
     
-          <!-- වම් පැත්තේ Sidebar එක -->
-      <div class="bg-dark text-white p-3 d-flex flex-column" style="width: 250px; min-width: 250px;">
-        <h4 class="text-center mb-4 text-success">FruitPOS</h4>
-        <nav class="nav flex-column">
-          <router-link to="/" class="sidebar-link" active-class="active">Dashboard</router-link>
-          <router-link to="/create-sale" class="sidebar-link" active-class="active">POS & Checkout</router-link>
-          <router-link to="/sales-list" class="sidebar-link" active-class="active">Sales History</router-link>
-        </nav>
-      </div>
+    <!-- වම් පැත්තේ Sidebar එක -->
+    <div class="bg-dark text-white p-3 d-flex flex-column" style="width: 250px; min-width: 250px;">
+      <h4 class="text-center mb-4 text-success fw-bold">FruitPOS</h4>
+      <nav class="nav flex-column">
+        <router-link to="/" class="sidebar-link text-white text-decoration-none p-2 mb-2 rounded">Dashboard</router-link>
+        <router-link to="/create-sale" class="sidebar-link text-white text-decoration-none p-2 mb-2 rounded">POS & Checkout</router-link>
+        <router-link to="/sales-list" class="sidebar-link text-white text-decoration-none p-2 mb-2 rounded">Sales History</router-link>
+        <router-link to="/return-sale" class="sidebar-link text-white text-decoration-none p-2 mb-2 rounded">Returns</router-link>
+      </nav>
+    </div>
 
-    <!-- මැද භාගයේ භාණ්ඩ -->
+    <!-- මැද භාගයේ භාණ්ඩ (Search එකත් එක්ක) -->
     <div class="flex-grow-1 p-4 bg-light">
-      <h3 class="mb-3">Products</h3>
-      <input type="text" class="form-control mb-4" placeholder="Search products..." style="max-width: 400px;" />
+      <h3 class="mb-3 fw-bold">Products</h3>
+      
+      <!-- Search Bar එක -->
+      <input 
+        v-model="searchQuery" 
+        type="text" 
+        class="form-control mb-4" 
+        placeholder="Search products..." 
+        style="max-width: 400px;" 
+      />
       
       <div class="d-flex flex-wrap gap-3">
-        <div class="card p-4 shadow-sm cursor-pointer" style="width: 180px;" @click="addToCart('Mango', 650.00)">
-          <h5 class="text-center">Mango</h5>
-          <p class="text-success text-center fw-bold mb-0">LKR 650.00 / Kg</p>
+        <!-- ෆිල්ටර් වුණු භාණ්ඩ ලැයිස්තුව -->
+        <div 
+          v-for="product in filteredProducts" 
+          :key="product.name"
+          class="card p-4 shadow-sm cursor-pointer" 
+          style="width: 180px;" 
+          @click="addToCart(product.name, product.price)"
+        >
+          <h5 class="text-center">{{ product.name }}</h5>
+          <p class="text-success text-center fw-bold mb-0">LKR {{ product.price }} / Kg</p>
         </div>
         
-        <div class="card p-4 shadow-sm cursor-pointer" style="width: 180px;" @click="addToCart('Banana', 120.00)">
-          <h5 class="text-center">Banana</h5>
-          <p class="text-success text-center fw-bold mb-0">LKR 120.00 / Kg</p>
+        <!-- භාණ්ඩ හම්බුනේ නැත්නම් -->
+        <div v-if="filteredProducts.length === 0" class="text-muted mt-3">
+          No products found matching "{{ searchQuery }}".
         </div>
       </div>
     </div>
 
     <!-- දකුණු පැත්තේ බිල (Cart) -->
     <div class="bg-white p-4 border-start shadow-sm d-flex flex-column" style="width: 350px; min-width: 350px;">
-      <h4 class="mb-3 border-bottom pb-2">Current Sale</h4>
+      <h4 class="mb-3 border-bottom pb-2 fw-bold">Current Sale</h4>
       
       <div class="flex-grow-1 overflow-auto">
         <div v-if="cart.length === 0" class="text-muted text-center mt-5">
@@ -48,9 +64,27 @@
       </div>
 
       <div class="mt-auto border-top pt-3">
+        
+        <!-- Discount Input -->
+        <div class="mb-3">
+          <label class="form-label fw-bold text-muted">Discount (LKR)</label>
+          <input v-model="discountAmount" type="number" min="0" class="form-control" placeholder="0.00" />
+        </div>
+
+        <!-- Payment Method Selection -->
+        <div class="mb-3">
+          <label class="form-label fw-bold text-muted">Payment Method</label>
+          <select v-model="paymentMethod" class="form-select">
+            <option value="cash">Cash</option>
+            <option value="card">Card</option>
+          </select>
+        </div>
+        <hr />
+
+        <!-- Total Amount (Discount එක අඩු කරලා) -->
         <div class="d-flex justify-content-between fs-4 fw-bold mb-3">
           <span>Total:</span>
-          <span>LKR {{ totalAmount }}</span>
+          <span>LKR {{ finalAmount }}</span>
         </div>
 
         <button @click="createSale" class="btn btn-success w-100 py-2 fs-5">Complete Sale</button>
@@ -64,7 +98,17 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
+
+const router = useRouter();
+
+// Search Query එක සහ Products ලැයිස්තුව
+const searchQuery = ref('');
+const products = ref([
+  { name: 'Mango', price: 650.00 },
+  { name: 'Banana', price: 120.00 }
+]);
 
 const generateRequestId = () => 'REQ-' + Math.random().toString(36).substr(2, 9);
 
@@ -72,6 +116,11 @@ const cart = ref([]);
 const message = ref('');
 const error = ref('');
 
+// අලුත් - Discount එක සහ Payment Method එක
+const discountAmount = ref(0);
+const paymentMethod = ref('cash');
+
+// බිලට භාණ්ඩ එකතු කරන function එක
 const addToCart = (name, price) => {
   cart.value.push({
     name: name,
@@ -82,10 +131,28 @@ const addToCart = (name, price) => {
   });
 };
 
+// මුළු මුදල ගණනය කරන function එක
 const totalAmount = computed(() => {
   return cart.value.reduce((sum, item) => sum + item.total, 0);
 });
 
+// අවසාන මුදල (Discount එක අඩු කරලා)
+const finalAmount = computed(() => {
+  const final = totalAmount.value - (parseFloat(discountAmount.value) || 0);
+  return final.toFixed(2); // දශම දෙකකට සීමා කරන්න
+});
+
+// Search Query එකට අනුව භාණ්ඩ ෆිල්ටර් කරන Function එක
+const filteredProducts = computed(() => {
+  if (!searchQuery.value) {
+    return products.value;
+  }
+  return products.value.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
+// බිල සම්පූර්ණ කරන function එක
 const createSale = async () => {
   if (cart.value.length === 0) {
     error.value = "Please add items to the cart first.";
@@ -103,15 +170,22 @@ const createSale = async () => {
       quantity: item.quantity,
       unit_price: item.price
     })),
-    payment_method: 'cash',
-    payment_amount: totalAmount.value,
+    payment_method: paymentMethod.value,       // අලුත් - තෝරපු ගෙවීම් ක්‍රමය
+    payment_amount: parseFloat(finalAmount.value), // අලුත් - අවසාන මුදල
+    discount_amount: parseFloat(discountAmount.value) || 0, // අලුත් - Discount එක
     request_id: generateRequestId()
   };
 
   try {
     const response = await axios.post('http://127.0.0.1:8000/api/sales', salePayload);
     message.value = response.data.message + ' (Sale ID: ' + response.data.sale.id + ')';
-    cart.value = [];
+    
+    // සාර්ථක වුණාම රිසිට් එක පෙන්නන තිරයට යන්න
+    router.push(`/receipt/${response.data.sale.id}`);
+    
+    cart.value = []; // Cart එක හිස් කරන්න
+    discountAmount.value = 0; // Discount එකත් reset කරන්න
+    paymentMethod.value = 'cash'; // Payment එකත් reset කරන්න
   } catch (err) {
     console.error(err);
     error.value = err.response?.data?.message || 'Failed to create sale.';

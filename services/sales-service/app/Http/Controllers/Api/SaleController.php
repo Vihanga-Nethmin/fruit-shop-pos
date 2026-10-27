@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Sale;
 use App\Models\SaleLine;
 use App\Models\RetailPayment;
+use App\Models\Customer;
+use App\Models\OutboxEvent; // අලුතෙන් Import කරන්න
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -25,11 +27,13 @@ class SaleController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
             'payment_method' => 'required|string|in:cash,card',
             'payment_amount' => 'required|numeric|min:0',
-            'request_id' => 'required|string|unique:sales,request_id' // දෙපාරක් ඔබන එක නවත්තන්න
+            'discount_amount' => 'nullable|numeric|min:0',
+            'customer_name' => 'nullable|string|max:255',
+            'customer_phone' => 'nullable|string|max:20',
+            'request_id' => 'required|string|unique:sales,request_id'
         ]);
 
         try {
-            // Database Transaction එකක් පටන් ගන්නවා (මොකක් හරි අවුලක් ආවොත් ඔක්කොම cancel වෙන්න)
             DB::beginTransaction();
 
             // 2. මුළු මුදල ගණනය කරන්න
@@ -38,19 +42,33 @@ class SaleController extends Controller
                 $totalAmount += ($item['quantity'] * $item['unit_price']);
             }
 
-            // 3. අලුත් බිල (Sale) එක හදන්න
+            $finalAmount = $totalAmount - ($request->discount_amount ?? 0);
+
+            // 3. ගැනුම්කරුගේ විස්තර තියෙනවා නම් ඒක Save කරන්න
+            $customerId = null;
+            if ($request->customer_name || $request->customer_phone) {
+                $customer = Customer::create([
+                    'tenant_id' => $request->tenant_id,
+                    'name' => $request->customer_name ?? 'Walk-in Customer',
+                    'phone' => $request->customer_phone,
+                ]);
+                $customerId = $customer->id;
+            }
+
+            // 4. අලුත් බිල (Sale) එක හදන්න
             $sale = Sale::create([
                 'tenant_id' => $request->tenant_id,
                 'user_id' => $request->user_id,
-                'sale_number' => 'SALE-' . strtoupper(Str::random(8)), // අහඹු බිල්පත් අංකයක්
-                'status' => 'completed', // දැනට අපි හිතමු ගෙවීම් ඉවරයි කියලා
-                'total_amount' => $totalAmount,
+                'customer_id' => $customerId,
+                'sale_number' => 'SALE-' . strtoupper(Str::random(8)),
+                'status' => 'completed',
+                'total_amount' => $finalAmount,
                 'tax_amount' => 0,
-                'discount_amount' => 0,
+                'discount_amount' => $request->discount_amount ?? 0,
                 'request_id' => $request->request_id,
             ]);
 
-            // 4. බිලේ තියෙන භාණ්ඩ ටික (Sale Lines) save කරන්න
+            // 5. බිලේ තියෙන භාණ්ඩ ටික (Sale Lines) save කරන්න
             foreach ($request->items as $item) {
                 $lineTotal = $item['quantity'] * $item['unit_price'];
                 
@@ -63,7 +81,7 @@ class SaleController extends Controller
                 ]);
             }
 
-            // 5. ගෙවීම (Payment) save කරන්න
+            // 6. ගෙවීම (Payment) save කරන්න
             RetailPayment::create([
                 'sale_id' => $sale->id,
                 'method' => $request->payment_method,
@@ -71,39 +89,57 @@ class SaleController extends Controller
                 'status' => 'confirmed',
             ]);
 
-            // ඔක්කොම හරි ගියා නම් Database එකට save කරන්න
             DB::commit();
+
+            // 7. Event එක සඳහා Sale එකේ lines ටික load කරගන්න
+            $sale->load('lines');
+
+            // 8. අලුතෙන් - Event එක Database එකේ Save කරන්න (Outbox Pattern)
+            OutboxEvent::create([
+                'event_type' => 'sale.completed',
+                'payload' => json_encode([ // json_encode අනිවාර්යයි
+                    'sale_id' => $sale->id,
+                    'tenant_id' => $sale->tenant_id,
+                    'user_id' => $sale->user_id,
+                    'total_amount' => $sale->total_amount,
+                    'items' => $sale->lines->map(function($line) {
+                        return [
+                            'product_id' => $line->product_id,
+                            'quantity' => $line->quantity
+                        ];
+                    })->toArray(),
+                    'timestamp' => now()->toIso8601String()
+                ])
+            ]);
 
             // සාර්ථක පණිවිඩයක් යවන්න
             return response()->json([
                 'message' => 'Sale created successfully!',
-                'sale' => $sale->load('lines', 'payments')
+                'sale' => $sale->load('lines', 'payments', 'customer')
             ], 201);
 
         } catch (\Exception $e) {
-            // මොකක් හරි අවුලක් ආවොත් ඔක්කොම ආපහු හරවන්න
             DB::rollBack();
             return response()->json(['error' => 'Failed to create sale', 'details' => $e->getMessage()], 500);
         }
     }
-        // හැම බිලක්ම බලන්න (Get All Sales)
+
+    // හැම බිලක්ම බලන්න (Get All Sales)
     public function index()
     {
-        // හැම බිලක්ම, ඒවාට අදාළ භාණ්ඩ (lines) සහ ගෙවීම් (payments) එක්කම ගන්න
-        $sales = Sale::with(['lines', 'payments'])->latest()->get();
+        $sales = Sale::with(['lines', 'payments', 'customer'])->latest()->get();
 
         return response()->json([
             'message' => 'Sales retrieved successfully',
             'data' => $sales
         ], 200);
     }
-        // එක බිලක විස්තර විතරක් බලන්න (Get Single Sale)
+
+    // එක බිලක විස්තර විතරක් බලන්න (Get Single Sale)
     public function show($id)
     {
-        // අදාළ ID එකට අයිති බිල, ඒකේ භාණ්ඩ සහ ගෙවීම් එක්කම හොයන්න
-        $sale = Sale::with(['lines', 'payments'])->find($id);
+        $sale = Sale::with(['lines', 'payments', 'customer'])->find($id);
 
-        // එහෙම බිලක් නැත්නම් 404 Error එකක් එවන්න
         if (!$sale) {
             return response()->json([
                 'message' => 'Sale not found'
