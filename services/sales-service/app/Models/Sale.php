@@ -31,4 +31,9 @@ class Sale extends Model
     {
         return $this->hasMany(RetailPayment::class);
     }
+    // Sale.php එකේ අන්තිමට මේක එකතු කරන්න
+    public function customer()
+   {
+       return $this->belongsTo(Customer::class);
+    }
 }
