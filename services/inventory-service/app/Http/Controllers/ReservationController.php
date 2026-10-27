@@ -43,6 +43,7 @@ class ReservationController extends Controller
                  WHERE sp.tenant_id = ?
                    AND sp.product_id = ?
                    AND sp.physical_qty - sp.reserved_qty > 0
+                                      AND sp.locked_by_count_id IS NULL
                    AND ' . Availability::sellableSql('b') . "
                    AND b.ripeness = 'READY'";
 

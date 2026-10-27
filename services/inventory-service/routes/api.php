@@ -16,6 +16,7 @@ use App\Http\Controllers\BatchController;
 use App\Http\Controllers\SaleReturnReceiptController;
 use App\Http\Controllers\SaleReturnReleaseController;
 use App\Http\Controllers\WastageController;
+use App\Http\Controllers\StockCountController;
 
 
 
@@ -76,5 +77,13 @@ Route::middleware('tenant')->group(function () {
     Route::post('/wastage-records/{id}/approve', [WastageController::class, 'approve']);
     Route::post('/wastage-records/{id}/reject', [WastageController::class, 'reject']);
     Route::post('/wastage-records/{id}/cancel', [WastageController::class, 'cancel']);
+
+        Route::get('/stock-counts', [StockCountController::class, 'index']);
+    Route::get('/stock-counts/{id}', [StockCountController::class, 'show']);
+    Route::post('/stock-counts', [StockCountController::class, 'store']);
+    Route::post('/stock-counts/{id}/entries', [StockCountController::class, 'enter']);
+    Route::post('/stock-counts/{id}/submit', [StockCountController::class, 'submit']);
+    Route::post('/stock-counts/{id}/approve', [StockCountController::class, 'approve']);
+    Route::post('/stock-counts/{id}/cancel', [StockCountController::class, 'cancel']);
 
 });

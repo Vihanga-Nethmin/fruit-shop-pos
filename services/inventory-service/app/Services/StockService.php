@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\StockLockedException;
 use App\Models\StockMovement;
 use App\Models\StockPosition;
 use DomainException;
@@ -9,7 +10,11 @@ use Illuminate\Support\Facades\DB;
 
 class StockService
 {
-    
+    /**
+     * Movement ekak post karanawa, position eka ekama transaction ekak athule update karanawa.
+     * $m['qty'] signed string (+ wadi, - adu). Float use karanne nae.
+     * $m['count_id'] dunnoth (stock count eke adjustment), eke lock eka bypass wenawa.
+     */
     public function post(array $m): StockMovement
     {
         return DB::transaction(function () use ($m) {
@@ -28,9 +33,14 @@ class StockService
                 ]);
             }
 
+            // Stock count ekakin lock wela nam block (count eka thamai bypass karanne)
+            if ($position->locked_by_count_id && $position->locked_by_count_id !== ($m['count_id'] ?? null)) {
+                throw new StockLockedException();
+            }
+
             $qty = (string) $m['qty'];
 
-          
+            // Arithmetic eka MySQL eke (DECIMAL). Negative wenna bari, reserved athulata adu wenna bari.
             $affected = DB::update(
                 'UPDATE stock_positions
                     SET physical_qty = physical_qty + ?, version = version + 1, updated_at = ?
