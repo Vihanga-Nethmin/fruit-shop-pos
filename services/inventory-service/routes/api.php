@@ -19,6 +19,7 @@ use App\Http\Controllers\WastageController;
 use App\Http\Controllers\StockCountController;
 use App\Http\Controllers\AlertController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\OperationsReportController;
 
 
 
@@ -92,5 +93,10 @@ Route::middleware('tenant')->group(function () {
 
             Route::get('/reports/stock', [ReportController::class, 'stock']);
     Route::get('/reports/ageing', [ReportController::class, 'ageing']);
+
+        Route::get('/reports/wastage', [OperationsReportController::class, 'wastage']);
+    Route::get('/reports/count-variance', [OperationsReportController::class, 'countVariance']);
+    Route::get('/reports/supplier-receipts', [OperationsReportController::class, 'supplierReceipts']);
+    Route::get('/reports/reorder-suggestions', [OperationsReportController::class, 'reorderSuggestions']);
 
 });

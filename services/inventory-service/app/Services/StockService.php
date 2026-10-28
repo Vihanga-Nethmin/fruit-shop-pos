@@ -3,15 +3,17 @@
 namespace App\Services;
 
 use App\Exceptions\StockLockedException;
+use App\Models\OutboxEvent;
 use App\Models\StockMovement;
 use App\Models\StockPosition;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class StockService
 {
     /**
-     * Movement ekak post karanawa, position eka ekama transaction ekak athule update karanawa.
+     * Movement ekak post karanawa, position eka saha outbox event eka ekama transaction ekak athule.
      * $m['qty'] signed string (+ wadi, - adu). Float use karanne nae.
      * $m['count_id'] dunnoth (stock count eke adjustment), eke lock eka bypass wenawa.
      */
@@ -54,7 +56,7 @@ class StockService
                 throw new DomainException('INSUFFICIENT_STOCK');
             }
 
-            return StockMovement::create([
+            $movement = StockMovement::create([
                 'product_id'     => $m['product_id'],
                 'batch_id'       => $m['batch_id'],
                 'location_id'    => $m['location_id'],
@@ -69,6 +71,30 @@ class StockService
                 'unit_cost'      => $m['unit_cost'],
                 'occurred_at'    => $m['occurred_at'] ?? now(),
             ]);
+
+            // Outbox event eka movement ekka ekama transaction ekak athule (movement rollback unoth event eth nae)
+            OutboxEvent::create([
+                'event_type'     => 'inventory.movement_posted',
+                'schema_version' => 1,
+                'aggregate_id'   => $movement->id,
+                'correlation_id' => request()->header('X-Correlation-Id') ?: (string) Str::uuid(),
+                'occurred_at'    => $movement->occurred_at,
+                'created_at'     => now(),
+                'payload'        => [
+                    'movement_id'    => $movement->id,
+                    'product_id'     => $movement->product_id,
+                    'batch_id'       => $movement->batch_id,
+                    'location_id'    => $movement->location_id,
+                    'signed_qty'     => (string) $movement->signed_qty,
+                    'type'           => $movement->type,
+                    'unit_cost'      => (string) $movement->unit_cost,
+                    'source_type'    => $movement->source_type,
+                    'source_id'      => $movement->source_id,
+                    'source_line_id' => $movement->source_line_id,
+                ],
+            ]);
+
+            return $movement;
         });
     }
 }
