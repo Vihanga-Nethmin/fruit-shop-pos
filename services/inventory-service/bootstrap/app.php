@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
    ->withMiddleware(function (Middleware $middleware): void {
     $middleware->alias([
         'tenant' => \App\Http\Middleware\ResolveTenant::class,
+        'audit' => \App\Http\Middleware\AuditRequests::class,
     ]);
 })
     ->withSchedule(function (Schedule $schedule): void {
