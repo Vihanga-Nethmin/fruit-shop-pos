@@ -27,6 +27,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('reservations:expire')->everyMinute()->withoutOverlapping();
         $schedule->command('outbox:publish')->everyMinute()->withoutOverlapping();
     })
+    ->withMiddleware(function (Middleware $middleware) {
+    $middleware->alias([
+        'idempotent' => \App\Http\Middleware\Idempotent::class,
+    ]);
+})
     
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -29,7 +29,7 @@ use App\Http\Controllers\SellByReviewController;
 
 Route::get('/ping', fn () => response()->json(['data' => ['service' => 'inventory-service', 'status' => 'ok']]));
 
-Route::middleware(['tenant', 'audit'])->group(function () {
+Route::middleware(['tenant', 'audit','idempotent'])->group(function () {
 
     // Master data
     Route::get('/categories', [CategoryController::class, 'index']);
