@@ -22,6 +22,7 @@ use App\Http\Controllers\TransferController;
 use App\Http\Controllers\WastageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SupplierReturnController;
+use App\Http\Controllers\SellByReviewController;
 
 // Catalogue & Inventory Service - public API (prefix /api/v1, see bootstrap/app.php)
 // Agree the endpoints with the team before adding them (see README.md and /docs/api).
@@ -119,4 +120,7 @@ Route::middleware(['tenant', 'audit'])->group(function () {
     Route::get('/reports/reorder-suggestions', [OperationsReportController::class, 'reorderSuggestions']);
 
     Route::get('/audit-events', [AuditController::class, 'index']);
+
+        Route::get('/batches/{id}/sell-by-review', [SellByReviewController::class, 'show']);
+    Route::post('/batches/{id}/sell-by-review', [SellByReviewController::class, 'store']);
 });

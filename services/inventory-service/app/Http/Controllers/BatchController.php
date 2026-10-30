@@ -92,6 +92,7 @@ class BatchController extends Controller
                 ], 422);
             }
 
+
             if (isset($after['quality_state'])) {
                 if ($batch->quality_state === 'SPOILED') {
                     return $this->error('INVALID_DOCUMENT_STATE', 'A spoiled batch cannot be changed.', 409);
@@ -108,6 +109,16 @@ class BatchController extends Controller
                     return response()->json([
                         'message' => 'The given data was invalid.',
                         'errors'  => ['use_by_date' => ['A past use-by date cannot be changed.']],
+                    ], 422);
+                }
+            }
+                        // Past sell-by date eka wenas karanna bari: owner review (sell-by-review) use karanna (SRS 6.3)
+            if (array_key_exists('sell_by_date', $after)) {
+                $currentSellBy = $this->dateOf($batch, 'sell_by_date');
+                if ($currentSellBy !== null && $currentSellBy < Availability::today()) {
+                    return response()->json([
+                        'message' => 'The given data was invalid.',
+                        'errors'  => ['sell_by_date' => ['A past sell-by date cannot be changed. Use the owner review instead.']],
                     ], 422);
                 }
             }

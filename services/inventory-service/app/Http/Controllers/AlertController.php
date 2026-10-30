@@ -45,7 +45,7 @@ class AlertController extends Controller
             'type'        => ['nullable', Rule::in(self::TYPES)],
         ]);
 
-        $nearDays   = (int) ($data['near_days'] ?? 2);     
+        $nearDays   = (int) ($data['near_days'] ?? 2);    
         $reviewDays = (int) ($data['review_days'] ?? 2);
         $tenant     = app('tenant_id');
         $today      = Availability::today();
@@ -82,20 +82,21 @@ class AlertController extends Controller
             }
         }
 
-        // 3 + 4: dates (use-by / sell-by, ikman iwara wenne eka)
+        // 3 + 4: dates (use-by / sell-by)
         $dateRows = DB::select(
             "SELECT b.id AS batch_id, b.source, p.id AS product_id, p.sku, p.name, p.base_unit,
                     SUM(sp.physical_qty) AS qty,
                     LEAST(COALESCE(b.use_by_date, b.sell_by_date), COALESCE(b.sell_by_date, b.use_by_date)) AS due,
                     CASE WHEN b.use_by_date IS NOT NULL AND (b.sell_by_date IS NULL OR b.use_by_date <= b.sell_by_date)
-                         THEN 'use-by' ELSE 'sell-by' END AS date_type
+                         THEN 'use-by' ELSE 'sell-by' END AS date_type,
+                    CASE WHEN b.sell_by_approved_until IS NOT NULL AND b.sell_by_approved_until >= ? THEN 1 ELSE 0 END AS approved
                FROM batches b
                JOIN stock_positions sp ON sp.batch_id = b.id
                JOIN products p ON p.id = b.product_id
               WHERE b.tenant_id = ? AND b.quality_state = 'SALEABLE' AND sp.physical_qty > 0
                 AND (b.use_by_date IS NOT NULL OR b.sell_by_date IS NOT NULL)
-              GROUP BY b.id, b.source, p.id, p.sku, p.name, p.base_unit, b.use_by_date, b.sell_by_date",
-            [$tenant]
+              GROUP BY b.id, b.source, p.id, p.sku, p.name, p.base_unit, b.use_by_date, b.sell_by_date, b.sell_by_approved_until",
+            [$today, $tenant]
         );
 
         foreach ($dateRows as $r) {
@@ -108,6 +109,10 @@ class AlertController extends Controller
             ];
 
             if ($daysLeft < 0) {
+                if ($r->date_type === 'sell-by' && (int) $r->approved > 0) {
+                    continue;
+                }
+
                 $alerts[] = $this->make('PAST_DATE_STOCK', 'high',
                     "{$r->name}: {$this->qty($r->qty)} $u passed the {$r->date_type} date ({$r->due}). Owner review or disposal needed.", $base);
             } elseif ($r->due <= $limit) {
