@@ -20,12 +20,18 @@ return Application::configure(basePath: dirname(__DIR__))
    ->withMiddleware(function (Middleware $middleware): void {
     $middleware->alias([
         'tenant' => \App\Http\Middleware\ResolveTenant::class,
+        'audit' => \App\Http\Middleware\AuditRequests::class,
     ]);
 })
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('reservations:expire')->everyMinute()->withoutOverlapping();
         $schedule->command('outbox:publish')->everyMinute()->withoutOverlapping();
     })
+    ->withMiddleware(function (Middleware $middleware) {
+    $middleware->alias([
+        'idempotent' => \App\Http\Middleware\Idempotent::class,
+    ]);
+})
     
     ->withExceptions(function (Exceptions $exceptions): void {
         //
