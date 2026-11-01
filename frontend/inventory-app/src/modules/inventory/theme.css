@@ -1,0 +1,95 @@
+.inv-page {
+  --inv-green-900: #0b5a35;
+  --inv-green-700: #14784a;
+  --inv-green-100: #e3f2ea;
+  --inv-bg: #f4f7f5;
+  --inv-card: #ffffff;
+  --inv-border: #e6ebe8;
+  --inv-text: #1c2b24;
+  --inv-muted: #7a8a82;
+  --inv-orange: #e9852d;
+  --inv-orange-bg: #fdf0e3;
+  --inv-red: #c62828;
+  --inv-red-bg: #fde8e8;
+  --inv-blue: #2f6fd1;
+  --inv-blue-bg: #e6eefb;
+
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--inv-text);
+  background: var(--inv-bg);
+  min-height: 100%;
+  padding: 24px 28px 40px;
+  box-sizing: border-box;
+}
+
+.inv-page * { box-sizing: border-box; }
+
+.inv-card {
+  background: var(--inv-card);
+  border: 1px solid var(--inv-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(16, 40, 28, 0.04);
+}
+
+.inv-card h3 { margin: 0; font-size: 16px; }
+.inv-card .sub { margin: 4px 0 14px; font-size: 13px; color: var(--inv-muted); }
+
+.inv-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.inv-btn {
+  border: 1px solid var(--inv-border);
+  background: #fff;
+  color: var(--inv-text);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.inv-btn:hover:not(:disabled) { background: var(--inv-green-100); }
+.inv-btn:disabled { opacity: 0.5; cursor: default; }
+.inv-btn.primary { background: var(--inv-green-900); color: #fff; border-color: var(--inv-green-900); }
+.inv-btn.primary:hover:not(:disabled) { background: var(--inv-green-700); }
+
+.inv-table-wrap { overflow-x: auto; }
+.inv-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.inv-table th {
+  text-align: left; font-weight: 600; font-size: 12px; color: var(--inv-muted);
+  padding: 10px 12px; border-bottom: 1px solid var(--inv-border); white-space: nowrap;
+}
+.inv-table td { padding: 12px; border-bottom: 1px solid var(--inv-border); }
+.inv-table tr:last-child td { border-bottom: 0; }
+.inv-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.inv-table small { display: block; color: var(--inv-muted); font-size: 12px; }
+
+.inv-alert-ok { background: var(--inv-green-100); color: var(--inv-green-900); padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; }
+.inv-alert-err { background: var(--inv-red-bg); color: var(--inv-red); padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; }
+.inv-empty { text-align: center; color: var(--inv-muted); padding: 28px 0; }
+/* Forms, chips, small buttons (shared) */
+.inv-form { display: grid; gap: 12px; }
+.inv-form label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
+.inv-form input, .inv-form select, .inv-form textarea {
+  padding: 9px 10px; font-size: 14px; border: 1px solid var(--inv-border);
+  border-radius: 10px; font-weight: 400; font-family: inherit; background: #fff;
+}
+.inv-form input:focus, .inv-form select:focus, .inv-form textarea:focus {
+  outline: 2px solid var(--inv-green-100); border-color: var(--inv-green-700);
+}
+.inv-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.inv-err { color: var(--inv-red); font-weight: 400; font-size: 12px; }
+.inv-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.inv-btn.sm { padding: 5px 10px; font-size: 12px; }
+.inv-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.inv-chip { border: 1px solid var(--inv-border); background: #fff; border-radius: 999px; padding: 6px 14px; font-size: 13px; cursor: pointer; color: var(--inv-text); }
+.inv-chip.on { background: var(--inv-green-900); color: #fff; border-color: var(--inv-green-900); }
+.inv-line { border: 1px solid var(--inv-border); border-radius: 12px; padding: 12px; display: grid; gap: 10px; background: var(--inv-bg); }
+.inv-line-head { display: flex; justify-content: space-between; align-items: center; }
+.inv-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.inv-pager { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 14px; font-size: 13px; color: var(--inv-muted); }
+.inv-actions { white-space: nowrap; text-align: right; }
+.inv-actions .inv-btn { margin-left: 6px; }

@@ -4,15 +4,18 @@ const BASE = '/api/v1'
 const TENANT = import.meta.env.VITE_TENANT_ID || 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' // TEMP: token eken replace
 const ROLE = import.meta.env.VITE_ROLE || 'OM' // TEMP: OM = owner, SC = stock clerk
 
-export async function api(path, { method = 'GET', body, params } = {}) {
+function buildUrl(path, params) {
   const url = new URL(BASE + path, window.location.origin)
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v)
     })
   }
+  return url
+}
 
-  const res = await fetch(url, {
+export async function api(path, { method = 'GET', body, params } = {}) {
+  const res = await fetch(buildUrl(path, params), {
     method,
     headers: {
       Accept: 'application/json',
@@ -31,4 +34,29 @@ export async function api(path, { method = 'GET', body, params } = {}) {
   }
 
   return { ok: res.ok, status: res.status, data }
+}
+
+// CSV (ho wena file) download karanna. Headers yawanna ona nisa plain link ekak wada karanne nae.
+export async function download(path, params) {
+  const res = await fetch(buildUrl(path, params), {
+    headers: {
+      Accept: 'text/csv, application/json',
+      'X-Tenant-Id': TENANT,
+      'X-User-Role': ROLE,
+    },
+  })
+
+  if (!res.ok) {
+    let data = null
+    try {
+      data = await res.json()
+    } catch (e) {
+      data = null
+    }
+    return { ok: false, status: res.status, data }
+  }
+
+  const blob = await res.blob()
+  const match = /filename="?([^";]+)"?/i.exec(res.headers.get('Content-Disposition') || '')
+  return { ok: true, status: res.status, blob, filename: match ? match[1] : null }
 }

@@ -4,7 +4,7 @@ import inventoryRoutes from './modules/inventory/routes'
 export default createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', redirect: '/products' },
+    { path: '/', redirect: '/stock' },
     ...inventoryRoutes,
   ],
 })

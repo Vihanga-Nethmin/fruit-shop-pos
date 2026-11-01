@@ -1,6 +1,11 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { api } from '../api/client'
+import '../theme.css'
+import PageHeader from '../components/PageHeader.vue'
+import StatCard from '../components/StatCard.vue'
+import StatusBadge from '../components/StatusBadge.vue'
+import Modal from '../components/Modal.vue'
 
 const products = ref([])
 const categories = ref([])
@@ -8,6 +13,10 @@ const meta = reactive({ page: 1, last: 1, total: 0 })
 const loading = ref(false)
 const message = ref('')
 const error = ref('')
+
+// Search and filter (current page)
+const search = ref('')
+const statusFilter = ref('ALL')
 
 // Add form
 const showForm = ref(false)
@@ -30,6 +39,18 @@ const money = (v) => 'LKR ' + Number(v).toFixed(2)
 function firstError(errs, field) {
   return errs && errs[field] ? errs[field][0] : ''
 }
+
+const visible = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  return products.value.filter((p) => {
+    if (statusFilter.value === 'ACTIVE' && !p.is_active) return false
+    if (statusFilter.value === 'INACTIVE' && p.is_active) return false
+    if (!q) return true
+    return [p.sku, p.name, p.variety, p.grade].filter(Boolean).join(' ').toLowerCase().includes(q)
+  })
+})
+
+const activeCount = computed(() => products.value.filter((p) => p.is_active).length)
 
 async function load(page = 1) {
   loading.value = true
@@ -135,51 +156,68 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="page">
-    <header class="bar">
-      <h2>Products</h2>
-      <button class="primary" @click="openForm">+ Add product</button>
-    </header>
+  <section class="inv-page">
+    <PageHeader title="Products">
+      <button class="inv-btn primary" @click="openForm">+ Add product</button>
+    </PageHeader>
 
-    <p v-if="message" class="ok">{{ message }}</p>
-    <p v-if="error" class="err">{{ error }}</p>
-    <p v-if="loading">Loading...</p>
+    <p v-if="message" class="inv-alert-ok">{{ message }}</p>
+    <p v-if="error" class="inv-alert-err">{{ error }}</p>
 
-    <table v-else>
-      <thead>
-        <tr>
-          <th>SKU</th><th>Name</th><th>Variety / Grade</th><th>Unit</th>
-          <th class="num">Price</th><th>Status</th><th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="p in products" :key="p.id" :class="{ inactive: !p.is_active }">
-          <td>{{ p.sku }}</td>
-          <td>{{ p.name }}</td>
-          <td>{{ [p.variety, p.grade].filter(Boolean).join(' / ') || '-' }}</td>
-          <td>{{ unitLabel(p.base_unit) }}</td>
-          <td class="num">{{ money(p.selling_price) }} per {{ unitLabel(p.base_unit) }}</td>
-          <td>{{ p.is_active ? 'Active' : 'Inactive' }}</td>
-          <td class="actions">
-            <button @click="openPrice(p)">Edit price</button>
-            <button @click="toggleActive(p)">{{ p.is_active ? 'Deactivate' : 'Activate' }}</button>
-          </td>
-        </tr>
-        <tr v-if="!products.length"><td colspan="7">No products yet.</td></tr>
-      </tbody>
-    </table>
+    <div class="inv-grid-4">
+      <StatCard label="Total products" :value="meta.total" hint="In the catalogue" icon="🍎" tone="green" />
+      <StatCard label="Active (this page)" :value="activeCount" hint="Available to sell" icon="✅" tone="blue" />
+      <StatCard label="Categories" :value="categories.length" hint="Active categories" icon="🗂️" tone="orange" />
+    </div>
 
-    <footer class="pager" v-if="meta.last > 1">
-      <button :disabled="meta.page <= 1" @click="load(meta.page - 1)">Previous</button>
-      <span>Page {{ meta.page }} of {{ meta.last }} ({{ meta.total }} products)</span>
-      <button :disabled="meta.page >= meta.last" @click="load(meta.page + 1)">Next</button>
-    </footer>
+    <div class="inv-card">
+      <div class="toolbar">
+        <input v-model="search" class="search" placeholder="Search SKU, name, variety..." />
+        <div class="chips">
+          <button class="chip" :class="{ on: statusFilter === 'ALL' }" @click="statusFilter = 'ALL'">All</button>
+          <button class="chip" :class="{ on: statusFilter === 'ACTIVE' }" @click="statusFilter = 'ACTIVE'">Active</button>
+          <button class="chip" :class="{ on: statusFilter === 'INACTIVE' }" @click="statusFilter = 'INACTIVE'">Inactive</button>
+        </div>
+      </div>
+
+      <p v-if="loading" class="inv-empty">Loading...</p>
+
+      <div v-else class="inv-table-wrap">
+        <table class="inv-table">
+          <thead>
+            <tr>
+              <th>Product</th><th>Variety / Grade</th><th>Unit</th>
+              <th class="num">Price</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="p in visible" :key="p.id" :class="{ off: !p.is_active }">
+              <td>{{ p.name }}<small>{{ p.sku }}</small></td>
+              <td>{{ [p.variety, p.grade].filter(Boolean).join(' / ') || '-' }}</td>
+              <td>{{ unitLabel(p.base_unit) }}</td>
+              <td class="num">{{ money(p.selling_price) }} <small>per {{ unitLabel(p.base_unit) }}</small></td>
+              <td><StatusBadge :tone="p.is_active ? 'green' : 'gray'">{{ p.is_active ? 'Active' : 'Inactive' }}</StatusBadge></td>
+              <td class="actions">
+                <button class="inv-btn sm" @click="openPrice(p)">Edit price</button>
+                <button class="inv-btn sm" @click="toggleActive(p)">{{ p.is_active ? 'Deactivate' : 'Activate' }}</button>
+              </td>
+            </tr>
+            <tr v-if="!visible.length"><td colspan="6" class="inv-empty">No products found.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="pager" v-if="meta.last > 1">
+        <button class="inv-btn" :disabled="meta.page <= 1" @click="load(meta.page - 1)">Previous</button>
+        <span>Page {{ meta.page }} of {{ meta.last }} ({{ meta.total }} products)</span>
+        <button class="inv-btn" :disabled="meta.page >= meta.last" @click="load(meta.page + 1)">Next</button>
+      </footer>
+    </div>
 
     <!-- Add product -->
-    <div v-if="showForm" class="overlay" @click.self="showForm = false">
-      <form class="dialog" @submit.prevent="createProduct">
-        <h3>Add product</h3>
-        <p v-if="formErrors.general" class="err">{{ formErrors.general[0] }}</p>
+    <Modal v-if="showForm" title="Add product" @close="showForm = false">
+      <form class="form" @submit.prevent="createProduct">
+        <p v-if="formErrors.general" class="inv-alert-err">{{ formErrors.general[0] }}</p>
 
         <label>SKU
           <input v-model="form.sku" />
@@ -217,17 +255,16 @@ onMounted(() => {
         </div>
 
         <div class="buttons">
-          <button type="button" @click="showForm = false">Cancel</button>
-          <button class="primary" :disabled="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
+          <button type="button" class="inv-btn" @click="showForm = false">Cancel</button>
+          <button class="inv-btn primary" :disabled="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
         </div>
       </form>
-    </div>
+    </Modal>
 
     <!-- Edit price -->
-    <div v-if="editing" class="overlay" @click.self="editing = null">
-      <form class="dialog" @submit.prevent="savePrice">
-        <h3>Change price: {{ editing.name }}</h3>
-        <p v-if="priceErrors.general" class="err">{{ priceErrors.general[0] }}</p>
+    <Modal v-if="editing" :title="'Change price: ' + editing.name" width="440px" @close="editing = null">
+      <form class="form" @submit.prevent="savePrice">
+        <p v-if="priceErrors.general" class="inv-alert-err">{{ priceErrors.general[0] }}</p>
 
         <label>New price (LKR per {{ unitLabel(editing.base_unit) }})
           <input v-model="priceForm.selling_price" type="number" step="0.01" min="0" />
@@ -239,31 +276,29 @@ onMounted(() => {
         </label>
 
         <div class="buttons">
-          <button type="button" @click="editing = null">Cancel</button>
-          <button class="primary">Save price</button>
+          <button type="button" class="inv-btn" @click="editing = null">Cancel</button>
+          <button class="inv-btn primary">Save price</button>
         </div>
       </form>
-    </div>
+    </Modal>
   </section>
 </template>
 
 <style scoped>
-.page { max-width: 1000px; margin: 0 auto; padding: 24px; font-family: sans-serif; }
-.bar { display: flex; justify-content: space-between; align-items: center; }
-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
-.num { text-align: right; }
-.inactive { color: #999; background: #fafafa; }
-.actions button { margin-right: 6px; }
-button { padding: 6px 12px; cursor: pointer; }
-.primary { background: #1f3a5f; color: #fff; border: 0; border-radius: 4px; }
-.ok { background: #e6f4ea; color: #1b5e20; padding: 8px 12px; border-radius: 4px; }
-.err { color: #b00020; }
-.pager { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
-.overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, .35); display: grid; place-items: center; }
-.dialog { background: #fff; padding: 20px; border-radius: 8px; width: min(560px, 92vw); display: grid; gap: 10px; }
-.dialog label { display: grid; gap: 4px; font-size: 14px; }
-.dialog input, .dialog select { padding: 6px; font-size: 14px; }
-.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-.buttons { display: flex; justify-content: flex-end; gap: 8px; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.search { flex: 1; min-width: 220px; max-width: 360px; padding: 9px 14px; border: 1px solid var(--inv-border); border-radius: 10px; font-size: 13.5px; background: var(--inv-bg); }
+.chips { display: flex; gap: 8px; }
+.chip { border: 1px solid var(--inv-border); background: #fff; border-radius: 999px; padding: 6px 14px; font-size: 13px; cursor: pointer; color: var(--inv-text); }
+.chip.on { background: var(--inv-green-900); color: #fff; border-color: var(--inv-green-900); }
+.off td { color: var(--inv-muted); }
+.actions { white-space: nowrap; text-align: right; }
+.sm { padding: 5px 10px; font-size: 12px; margin-left: 6px; }
+.pager { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 14px; font-size: 13px; color: var(--inv-muted); }
+.form { display: grid; gap: 12px; }
+.form label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
+.form input, .form select { padding: 9px 10px; font-size: 14px; border: 1px solid var(--inv-border); border-radius: 10px; font-weight: 400; }
+.form input:focus, .form select:focus, .search:focus { outline: 2px solid var(--inv-green-100); border-color: var(--inv-green-700); }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.err { color: var(--inv-red); font-weight: 400; }
+.buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
 </style>
