@@ -10,6 +10,7 @@ const links = [
   { to: '/reports', label: 'Reports', icon: '📈', owner: true },
   { to: '/audit', label: 'Audit log', icon: '🧾', owner: true },
   { to: '/products', label: 'Products', icon: '🍎' },
+  { to: '/master-data', label: 'Master data', icon: '🗂️' },
 ].filter((l) => !l.owner || isOwner)
 </script>
 

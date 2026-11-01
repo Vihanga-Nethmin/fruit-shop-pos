@@ -8,4 +8,5 @@ export default [
   { path: '/reports', name: 'inventory-reports', component: () => import('./views/ReportsView.vue') },
   { path: '/audit', name: 'inventory-audit', component: () => import('./views/AuditView.vue') },
   { path: '/products', name: 'inventory-products', component: () => import('./views/ProductsView.vue') },
+  { path: '/master-data', name: 'inventory-master-data', component: () => import('./views/MasterDataView.vue') },
 ]
