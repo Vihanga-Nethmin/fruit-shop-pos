@@ -25,7 +25,15 @@ export async function loadLookups() {
 export const errOf = (errs, field) => (errs && errs[field] ? errs[field][0] : '')
 
 export const statusTone = (s) =>
-  ({ DRAFT: 'orange', APPROVED: 'blue', POSTED: 'green', CLOSED: 'green', CANCELLED: 'gray' }[s] || 'gray')
+   ({
+    DRAFT: 'orange',
+    SUBMITTED: 'orange',
+    APPROVED: 'blue',
+    POSTED: 'green',
+    CLOSED: 'green',
+    REJECTED: 'red',
+    CANCELLED: 'gray',
+  }[s] || 'gray')
 
 export const prettyStatus = (s) =>
   String(s || '').toLowerCase().replace(/^\w/, (c) => c.toUpperCase())

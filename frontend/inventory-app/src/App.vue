@@ -3,6 +3,7 @@ const links = [
   { to: '/stock', label: 'Stock', icon: '📊' },
   { to: '/receiving', label: 'Receiving', icon: '🚚' },
   { to: '/batches', label: 'Batches', icon: '🏷️' },
+  { to: '/loss', label: 'Loss and returns', icon: '🗑️' },
   { to: '/products', label: 'Products', icon: '🍎' },
 ]
 </script>
@@ -40,4 +41,4 @@ body { margin: 0; }
 .user small { display: block; color: #9bcdb2; font-size: 12px; }
 .avatar { width: 34px; height: 34px; border-radius: 50%; background: #14784a; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
 .content { flex: 1; min-width: 0; background: #f4f7f5; }
-</style> 
+</style>
