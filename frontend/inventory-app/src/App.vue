@@ -1,12 +1,15 @@
 <script setup>
+const isOwner = (import.meta.env.VITE_ROLE || 'OM') === 'OM'
+
 const links = [
   { to: '/stock', label: 'Stock', icon: '📊' },
   { to: '/receiving', label: 'Receiving', icon: '🚚' },
   { to: '/batches', label: 'Batches', icon: '🏷️' },
   { to: '/loss', label: 'Loss and returns', icon: '🗑️' },
   { to: '/counts', label: 'Stock counts', icon: '🧮' },
+  { to: '/reports', label: 'Reports', icon: '📈', owner: true },
   { to: '/products', label: 'Products', icon: '🍎' },
-]
+].filter((l) => !l.owner || isOwner)
 </script>
 
 <template>
