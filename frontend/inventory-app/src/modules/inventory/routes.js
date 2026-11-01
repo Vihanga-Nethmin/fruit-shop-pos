@@ -4,5 +4,6 @@ export default [
   { path: '/receiving', name: 'inventory-receiving', component: () => import('./views/ReceivingView.vue') },
   { path: '/batches', name: 'inventory-batches', component: () => import('./views/BatchesView.vue') },
   { path: '/loss', name: 'inventory-loss', component: () => import('./views/LossView.vue') },
+  { path: '/counts', name: 'inventory-counts', component: () => import('./views/StockCountsView.vue') },
   { path: '/products', name: 'inventory-products', component: () => import('./views/ProductsView.vue') },
 ]

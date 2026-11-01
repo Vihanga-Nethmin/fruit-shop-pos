@@ -4,6 +4,7 @@ const links = [
   { to: '/receiving', label: 'Receiving', icon: '🚚' },
   { to: '/batches', label: 'Batches', icon: '🏷️' },
   { to: '/loss', label: 'Loss and returns', icon: '🗑️' },
+  { to: '/counts', label: 'Stock counts', icon: '🧮' },
   { to: '/products', label: 'Products', icon: '🍎' },
 ]
 </script>
