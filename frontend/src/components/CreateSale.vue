@@ -80,6 +80,16 @@
           </select>
         </div>
         <hr />
+        
+        <!-- Optional Customer Details -->
+        <div class="mb-3">
+          <label class="form-label fw-bold text-muted">Customer Name (Optional)</label>
+          <input v-model="customerName" type="text" class="form-control" placeholder="e.g. John Doe" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold text-muted">Customer Phone (Optional)</label>
+          <input v-model="customerPhone" type="text" class="form-control" placeholder="e.g. 0771234567" />
+        </div>
 
         <!-- Total Amount (Discount එක අඩු කරලා) -->
         <div class="d-flex justify-content-between fs-4 fw-bold mb-3">
@@ -116,9 +126,13 @@ const cart = ref([]);
 const message = ref('');
 const error = ref('');
 
-// අලුත් - Discount එක සහ Payment Method එක
+// Discount එක සහ Payment Method එක
 const discountAmount = ref(0);
 const paymentMethod = ref('cash');
+
+// අලුත් - Customer Details (මෙතන තමයි තියෙන්න ඕනේ)
+const customerName = ref('');
+const customerPhone = ref('');
 
 // බිලට භාණ්ඩ එකතු කරන function එක
 const addToCart = (name, price) => {
@@ -139,7 +153,7 @@ const totalAmount = computed(() => {
 // අවසාන මුදල (Discount එක අඩු කරලා)
 const finalAmount = computed(() => {
   const final = totalAmount.value - (parseFloat(discountAmount.value) || 0);
-  return final.toFixed(2); // දශම දෙකකට සීමා කරන්න
+  return final.toFixed(2);
 });
 
 // Search Query එකට අනුව භාණ්ඩ ෆිල්ටර් කරන Function එක
@@ -170,9 +184,12 @@ const createSale = async () => {
       quantity: item.quantity,
       unit_price: item.price
     })),
-    payment_method: paymentMethod.value,       // අලුත් - තෝරපු ගෙවීම් ක්‍රමය
-    payment_amount: parseFloat(finalAmount.value), // අලුත් - අවසාන මුදල
-    discount_amount: parseFloat(discountAmount.value) || 0, // අලුත් - Discount එක
+    payment_method: paymentMethod.value,
+    payment_amount: parseFloat(finalAmount.value),
+    discount_amount: parseFloat(discountAmount.value) || 0,
+    // අලුත් - Customer Details (මේවා තමයි Backend එකට යන්නේ)
+    customer_name: customerName.value,
+    customer_phone: customerPhone.value,
     request_id: generateRequestId()
   };
 
@@ -183,9 +200,13 @@ const createSale = async () => {
     // සාර්ථක වුණාම රිසිට් එක පෙන්නන තිරයට යන්න
     router.push(`/receipt/${response.data.sale.id}`);
     
-    cart.value = []; // Cart එක හිස් කරන්න
-    discountAmount.value = 0; // Discount එකත් reset කරන්න
-    paymentMethod.value = 'cash'; // Payment එකත් reset කරන්න
+    // හැම දෙයක්ම reset කරන්න
+    cart.value = [];
+    discountAmount.value = 0;
+    paymentMethod.value = 'cash';
+    customerName.value = '';
+    customerPhone.value = '';
+    
   } catch (err) {
     console.error(err);
     error.value = err.response?.data?.message || 'Failed to create sale.';

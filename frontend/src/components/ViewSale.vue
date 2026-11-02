@@ -25,7 +25,11 @@
       <div v-if="sale && !loading">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h2 class="fw-bold">Sale Details: {{ sale.sale_number }}</h2>
-          <router-link to="/sales-list" class="btn btn-outline-secondary">Back to List</router-link>
+          <div>
+            <router-link to="/sales-list" class="btn btn-outline-secondary me-2">Back to List</router-link>
+            <!-- අලුත් - Cancel Button -->
+            <button v-if="sale.status !== 'cancelled' && sale.status !== 'completed'" @click="cancelSale" class="btn btn-danger">Cancel Sale</button>
+          </div>
         </div>
 
         <div class="row">
@@ -54,6 +58,13 @@
                 </table>
               </div>
             </div>
+
+            <!-- Customer Details -->
+            <div class="mt-3 p-3 bg-light rounded" v-if="sale.customer">
+              <h6 class="fw-bold">Customer Details</h6>
+              <p class="mb-1"><strong>Name:</strong> {{ sale.customer.name }}</p>
+              <p class="mb-0" v-if="sale.customer.phone"><strong>Phone:</strong> {{ sale.customer.phone }}</p>
+            </div>
           </div>
 
           <!-- Right Column: Summary & Payment -->
@@ -63,7 +74,7 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">
                   <span class="text-muted">Status:</span>
-                  <span class="badge bg-success">{{ sale.status }}</span>
+                  <span class="badge" :class="sale.status === 'cancelled' ? 'bg-danger' : 'bg-success'">{{ sale.status }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                   <span class="text-muted">Date:</span>
@@ -122,7 +133,6 @@ const error = ref('');
 const fetchSaleDetails = async () => {
   const saleId = route.params.id;
   try {
-    // අපේ අලුත් GET /api/sales/{id} API එකට කෝල් කරනවා
     const response = await axios.get(`http://127.0.0.1:8000/api/sales/${saleId}`);
     sale.value = response.data.data;
   } catch (err) {
@@ -130,6 +140,19 @@ const fetchSaleDetails = async () => {
     error.value = 'Failed to load sale details. Sale not found.';
   } finally {
     loading.value = false;
+  }
+};
+
+// අලුත් - බිල අවලංගු කරන function එක
+const cancelSale = async () => {
+  if (!confirm("Are you sure you want to cancel this sale?")) return;
+  
+  try {
+    const response = await axios.post(`http://127.0.0.1:8000/api/sales/${sale.value.id}/cancel`);
+    alert(response.data.message);
+    fetchSaleDetails(); // විස්තර ආයේ ලෝඩ් කරන්න
+  } catch (err) {
+    alert(err.response?.data?.message || 'Failed to cancel sale.');
   }
 };
 

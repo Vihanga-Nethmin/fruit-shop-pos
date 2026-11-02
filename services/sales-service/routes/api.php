@@ -15,3 +15,5 @@ Route::post('/sales/{id}/returns', [SaleReturnController::class, 'store']);
 Route::post('/shifts/open', [ShiftController::class, 'open']);
 Route::post('/shifts/{id}/close', [ShiftController::class, 'close']);
 Route::get('/shifts', [ShiftController::class, 'index']);
+// බිල අවලංගු කරන්න
+Route::post('/sales/{id}/cancel', [SaleController::class, 'cancel']);

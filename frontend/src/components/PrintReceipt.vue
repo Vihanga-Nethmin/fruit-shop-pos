@@ -33,6 +33,17 @@
           <span>Date:</span>
           <span>{{ new Date(sale.created_at).toLocaleString() }}</span>
         </div>
+        
+        <!-- අලුත් - Customer Details -->
+        <div class="d-flex justify-content-between small mb-1" v-if="sale.customer">
+          <span>Customer:</span>
+          <span>{{ sale.customer.name }}</span>
+        </div>
+        <div class="d-flex justify-content-between small mb-1" v-if="sale.customer && sale.customer.phone">
+          <span>Phone:</span>
+          <span>{{ sale.customer.phone }}</span>
+        </div>
+        
         <div class="d-flex justify-content-between small mb-3">
           <span>Cashier:</span>
           <span>User #{{ sale.user_id }}</span>

@@ -8,7 +8,7 @@ use App\Models\Sale;
 use App\Models\SaleLine;
 use App\Models\RetailPayment;
 use App\Models\Customer;
-use App\Models\OutboxEvent; // අලුතෙන් Import කරන්න
+use App\Models\OutboxEvent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -97,7 +97,7 @@ class SaleController extends Controller
             // 8. අලුතෙන් - Event එක Database එකේ Save කරන්න (Outbox Pattern)
             OutboxEvent::create([
                 'event_type' => 'sale.completed',
-                'payload' => json_encode([ // json_encode අනිවාර්යයි
+                'payload' => json_encode([
                     'sale_id' => $sale->id,
                     'tenant_id' => $sale->tenant_id,
                     'user_id' => $sale->user_id,
@@ -149,6 +149,34 @@ class SaleController extends Controller
         return response()->json([
             'message' => 'Sale retrieved successfully',
             'data' => $sale
+        ], 200);
+    }
+
+    // අලුතෙන් - බිලක් අවලංගු කරන්න (Cancel Sale)
+    public function cancel($id)
+    {
+        $sale = Sale::find($id);
+
+        if (!$sale) {
+            return response()->json(['message' => 'Sale not found'], 404);
+        }
+
+        // දැනටමත් Cancel කරලා නම්, ආයේ කරන්න ඕනේ නැහැ
+        if ($sale->status === 'cancelled') {
+            return response()->json(['message' => 'Sale is already cancelled.'], 400);
+        }
+
+        // Completed බිලක් Cancel කරන්න බැහැ (Return/Refund කරන්න ඕනේ)
+        if ($sale->status === 'completed') {
+            return response()->json(['message' => 'Completed sales cannot be cancelled. Please use Return/Refund instead.'], 400);
+        }
+
+        // බිල Cancel කරන්න
+        $sale->update(['status' => 'cancelled']);
+
+        return response()->json([
+            'message' => 'Sale cancelled successfully!',
+            'sale' => $sale
         ], 200);
     }
 }
