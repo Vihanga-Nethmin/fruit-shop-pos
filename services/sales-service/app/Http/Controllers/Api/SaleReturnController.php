@@ -1,4 +1,4 @@
-<?php
+cd<?php
 
 namespace App\Http\Controllers\Api;
 
@@ -8,6 +8,7 @@ use App\Models\Sale;
 use App\Models\SaleReturn;
 use App\Models\ReturnLine;
 use App\Models\RefundRecord;
+use App\Models\OutboxEvent; // අලුතෙන් Import කරන්න
 use Illuminate\Support\Facades\DB;
 
 class SaleReturnController extends Controller
@@ -20,6 +21,7 @@ class SaleReturnController extends Controller
             'items' => 'required|array|min:1',
             'items.*.sale_line_id' => 'required|exists:sale_lines,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
+            'items.*.condition' => 'required|string|in:GOOD,SPOILED,DAMAGED', // අලුත් - තත්ත්වය
             'payment_method' => 'required|string|in:cash,card',
             'reason' => 'nullable|string'
         ]);
@@ -58,6 +60,8 @@ class SaleReturnController extends Controller
                     'sale_line_id' => $item['sale_line_id'],
                     'quantity' => $item['quantity'],
                     'refund_amount' => $lineRefundAmount,
+                    'condition' => $item['condition'], // අලුත් - තත්ත්වය
+                    'product_id' => $saleLine->product_id, // Event එකට ඕන නිසා මෙතන ගන්නවා
                 ];
             }
 
@@ -71,8 +75,14 @@ class SaleReturnController extends Controller
 
             // 5. Return Lines ටික Save කරන්න
             foreach ($returnLinesData as $lineData) {
-                $lineData['sale_return_id'] = $saleReturn->id;
-                ReturnLine::create($lineData);
+                $returnData = [
+                    'sale_return_id' => $saleReturn->id,
+                    'sale_line_id' => $lineData['sale_line_id'],
+                    'quantity' => $lineData['quantity'],
+                    'refund_amount' => $lineData['refund_amount'],
+                    'condition' => $lineData['condition'],
+                ];
+                ReturnLine::create($returnData);
             }
 
             // 6. Refund එක Save කරන්න
@@ -84,6 +94,23 @@ class SaleReturnController extends Controller
             ]);
 
             DB::commit();
+
+            // 7. අලුතෙන් - Inventory Service එකට Events යවන්න (Outbox Pattern)
+            foreach ($returnLinesData as $lineData) {
+                $eventType = ($lineData['condition'] === 'GOOD') ? 'sale.return.good' : 'sale.return.spoiled';
+
+                OutboxEvent::create([
+                    'event_type' => $eventType,
+                    'payload' => json_encode([
+                        'return_id' => $saleReturn->id,
+                        'sale_id' => $sale->id,
+                        'product_id' => $lineData['product_id'],
+                        'quantity' => $lineData['quantity'],
+                        'condition' => $lineData['condition'],
+                        'timestamp' => now()->toIso8601String()
+                    ])
+                ]);
+            }
 
             return response()->json([
                 'message' => 'Sale return and refund processed successfully!',

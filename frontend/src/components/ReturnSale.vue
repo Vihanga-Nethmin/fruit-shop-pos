@@ -51,6 +51,7 @@
                       <th>Product ID</th>
                       <th>Original Qty</th>
                       <th>Return Qty</th>
+                      <th>Condition</th>
                       <th>Unit Price (LKR)</th>
                     </tr>
                   </thead>
@@ -68,6 +69,14 @@
                           class="form-control form-control-sm" 
                           placeholder="0"
                         />
+                      </td>
+                      <td>
+                        <!-- අලුත් - තත්ත්වය තෝරන්න -->
+                        <select v-model="returnConditions[line.id]" class="form-select form-select-sm">
+                          <option value="GOOD">Good Condition</option>
+                          <option value="SPOILED">Spoiled</option>
+                          <option value="DAMAGED">Damaged</option>
+                        </select>
                       </td>
                       <td>{{ line.unit_price }}</td>
                     </tr>
@@ -108,6 +117,7 @@ const loading = ref(false);
 const error = ref('');
 const successMessage = ref('');
 const returnQuantities = ref({});
+const returnConditions = ref({}); // අලුතෙන්
 
 // Sale එකක් හොයාගන්න function එක
 const fetchSale = async () => {
@@ -122,10 +132,13 @@ const fetchSale = async () => {
     const response = await axios.get(`http://127.0.0.1:8000/api/sales/${searchSaleId.value}`);
     sale.value = response.data.data;
     
-    // අලුත් Sale එකක් හම්බුනාම Return Quantities හිස් කරන්න
+    // අලුත් Sale එකක් හම්බුනාම Return Quantities සහ Conditions හිස් කරන්න
     returnQuantities.value = {};
+    returnConditions.value = {}; // අලුතෙන්
+
     sale.value.lines.forEach(line => {
       returnQuantities.value[line.id] = 0;
+      returnConditions.value[line.id] = 'GOOD'; // Default එක
     });
     
   } catch (err) {
@@ -159,7 +172,8 @@ const processReturn = async () => {
     if (qty > 0) {
       itemsToReturn.push({
         sale_line_id: line.id,
-        quantity: qty
+        quantity: qty,
+        condition: returnConditions.value[line.id] // අලුතෙන්
       });
     }
   });
@@ -182,6 +196,7 @@ const processReturn = async () => {
     // සාර්ථක වුණාම inputs හිස් කරන්න
     sale.value.lines.forEach(line => {
       returnQuantities.value[line.id] = 0;
+      returnConditions.value[line.id] = 'GOOD'; // අලුතෙන්
     });
 
   } catch (err) {

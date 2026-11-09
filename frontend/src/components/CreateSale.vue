@@ -178,7 +178,7 @@ const createSale = async () => {
 
   const salePayload = {
     tenant_id: '123e4567-e89b-12d3-a456-426614174000',
-    user_id: 1,
+    user_id: 2,
     items: cart.value.map(item => ({
       product_id: item.product_id,
       quantity: item.quantity,
